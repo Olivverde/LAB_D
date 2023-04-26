@@ -2,90 +2,74 @@ from labB import *
 afds = [
     {
         "0": {
-            " ": 1,
-            "\\": 2,
-            "n": [],
-            "t": []
+            "\n": 1,
+            " ": 2
         },
         "1": {
-            " ": [],
-            "\\": [],
-            "n": [],
-            "t": []
+            "\n": [],
+            " ": []
         },
         "2": {
-            " ": [],
-            "\\": [],
-            "n": 3,
-            "t": 4
+            "\n": [],
+            " ": 3
         },
         "3": {
-            " ": [],
-            "\\": [],
-            "n": [],
-            "t": []
+            "\n": [],
+            " ": 4
         },
         "4": {
-            " ": [],
-            "\\": [],
-            "n": [],
-            "t": []
+            "\n": [],
+            " ": 5
+        },
+        "5": {
+            "\n": [],
+            " ": []
         }
     },
     {
         "0": {
-            " ": 1,
-            "\\": 2,
-            "n": [],
-            "t": []
+            "\n": 1,
+            " ": 2
         },
         "1": {
-            " ": 3,
-            "\\": 4,
-            "n": [],
-            "t": []
+            "\n": 3,
+            " ": 4
         },
         "2": {
-            " ": [],
-            "\\": [],
-            "n": 5,
-            "t": 6
+            "\n": 3,
+            " ": 5
         },
         "3": {
-            " ": 3,
-            "\\": 4,
-            "n": [],
-            "t": []
+            "\n": 3,
+            " ": 4
         },
         "4": {
-            " ": [],
-            "\\": [],
-            "n": 7,
-            "t": 8
+            "\n": 3,
+            " ": 6
         },
         "5": {
-            " ": 3,
-            "\\": 4,
-            "n": [],
-            "t": []
+            "\n": 3,
+            " ": 7
         },
         "6": {
-            " ": 3,
-            "\\": 4,
-            "n": [],
-            "t": []
+            "\n": 3,
+            " ": 8
         },
         "7": {
-            " ": 3,
-            "\\": 4,
-            "n": [],
-            "t": []
+            "\n": 3,
+            " ": 9
         },
         "8": {
-            " ": 3,
-            "\\": 4,
-            "n": [],
-            "t": []
+            "\n": 3,
+            " ": 10
+        },
+        "9": {
+            "\n": 3,
+            " ": 10
+        },
+        "10": {
+            "\n": 3,
+            " ": 10
         }
     },
     {
@@ -10450,31 +10434,67 @@ afds = [
     }
 ]
 patterns = {
-    "delim": "( |\\t|\\n)",
-    "ws": "(( |\\t|\\n))(( |\\t|\\n)*)",
+    "delim": "( |    |\n)",
+    "ws": "(( |    |\n))(( |    |\n)*)",
     "letter": "(A|B|C|D|E|F|G|H|I|J|K|L|M|N|O|P|Q|R|S|T|U|V|W|X|Y|Z|a|b|c|d|e|f|g|h|i|j|k|l|m|n|o|p|q|r|s|t|u|v|w|x|y|z)",
     "digit": "(0|1|2|3|4|5|6|7|8|9)",
     "id": "(A|B|C|D|E|F|G|H|I|J|K|L|M|N|O|P|Q|R|S|T|U|V|W|X|Y|Z|a|b|c|d|e|f|g|h|i|j|k|l|m|n|o|p|q|r|s|t|u|v|w|x|y|z)((A|B|C|D|E|F|G|H|I|J|K|L|M|N|O|P|Q|R|S|T|U|V|W|X|Y|Z|a|b|c|d|e|f|g|h|i|j|k|l|m|n|o|p|q|r|s|t|u|v|w|x|y|z)|(0|1|2|3|4|5|6|7|8|9))*"
 }
 
+tokens ={"ws": "", "id": "ID", "+": "PLUS", "*": "TIMES", "(": "LPAREN", ")": "RPAREN"}
 class Test:
-    def identifyer(self, w, afds, patterns):
-        a = FDA()
+    def identifyer2(self, w, afds, patterns):
+        fda = FDA()
+        identifyed_patterns = []
+        pass_counter = 0
+        stored_pattern = ''
+        result = ''
         flag = 0
         for i in patterns:
             patterns[i] = afds[flag]
             flag += 1
+        w = list(w)
         aux_w = ''
-        result = ''
-        for c in range(len(w)):
-            aux_w += w[c]
-            for pat in patterns:
-                print(aux_w)
-                b = patterns[pat]
-                print(pat)
-                result = a.afd_simulation(aux_w, b)
+        while w:
+            pass_counter = 0
+            aux_w += w.pop(0)
+            for pattern in patterns:
+                b = patterns[pattern]
+                result = fda.afd_simulation(aux_w, b)
                 if result == 'PASS':
-                    print('<', aux_w, ' →', pat, '>')
+                    stored_pattern = pattern
+                    pass_counter += 1
+                elif result == 'FAIL':
+                    if pattern == stored_pattern:
+                        identifyed_patterns.append(aux_w[:len(aux_w)-1])
+                        w.insert(0,aux_w[-1])
+                        aux_w = ''
+                        stored_pattern = ''
+                        pass_counter += 1
+                    elif aux_w in tokens and not stored_pattern:
+                        identifyed_patterns.append(aux_w)
+                        aux_w = ''
+                        stored_pattern = ''
+                        pass_counter += 1
+                    
+                    try:
+                        aux_future_w = aux_w+w[0]
+                        for i in tokens:
+                            if aux_future_w in tokens[i] and not stored_pattern:
+                                identifyed_patterns.append(aux_future_w)
+                                w.pop(0)
+                                aux_w = ''
+                                stored_pattern = ''
+                                pass_counter += 1
+                    except:
+                        pass
+                        
+                    
+            if pass_counter == 0:
+                aux_w = ''
+        if aux_w:
+            identifyed_patterns.append(aux_w)
+        print(identifyed_patterns)
 t = Test()
-w = 'abc'
-t.identifyer(w, afds, patterns)
+w = '8 + (30 * 5)'
+t.identifyer2(w, afds, patterns)

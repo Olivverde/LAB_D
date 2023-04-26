@@ -31,43 +31,43 @@ class Libs(object):
                             
                         aux.insert(0,chr)
                     aux_str = ''.join(aux)
-                    new_str = '('+str(aux_str)+'|ϕ)' #(x|ε)
+                    new_str = '('+str(aux_str)+'|ε)' #(x|ε)
                     translation.append(new_str)
                 else:
                 
-                    new_str = '('+str(chr)+'|ϕ)'
+                    new_str = '('+str(chr)+'|ε)'
                     translation.append(new_str)
                 
-            elif e == '+':
-                chr = translation.pop()
-                if chr == ')':
-                    aux = [chr]
-                    sign_sum = 0
-                    while chr != '(' and sign_sum != -1:
-                        chr = translation.pop()
-                        if chr == ')':
-                            sign_sum += 1
-                        elif chr == '(':
-                            sign_sum -= 1
+            # elif e == '+':
+            #     chr = translation.pop()
+            #     if chr == ')':
+            #         aux = [chr]
+            #         sign_sum = 0
+            #         while chr != '(' and sign_sum != -1:
+            #             chr = translation.pop()
+            #             if chr == ')':
+            #                 sign_sum += 1
+            #             elif chr == '(':
+            #                 sign_sum -= 1
                             
-                        aux.insert(0,chr)
-                    aux_str = ''.join(aux)
-                    new_str = str(aux_str)+'('+str(aux_str)+'*)'
-                    translation.append(new_str)
-                else:
+            #             aux.insert(0,chr)
+            #         aux_str = ''.join(aux)
+            #         new_str = str(aux_str)+'('+str(aux_str)+'*)'
+            #         translation.append(new_str)
+                # else:
                     
-                    new_str = str(chr)+'('+str(chr)+'*)'
-                    translation.append(new_str)
+                #     new_str = str(chr)+'('+str(chr)+'*)'
+                #     translation.append(new_str)
             
             elif e == '.':
                 self.dicc['ϰ'] = e
                 e = 'ϰ'
                 translation.append(e)
             
-            elif e == 'ε':
-                self.dicc['ϕ'] = e
-                e = 'ϕ'
-                translation.append(e)
+            # elif e == 'ε':
+            #     self.dicc['ϕ'] = e
+            #     e = 'ϕ'
+            #     translation.append(e)
             
             
             else:
@@ -76,6 +76,7 @@ class Libs(object):
         string = ''.join(translation)
         
         # Balance verification
+        print(string)
         for c in [char for char in string]:
             
             if c == '(':
@@ -84,6 +85,7 @@ class Libs(object):
                 balance_score -= 1
             
         if balance_score != 0:
+            print(balance_score)
             print('---------------------------------------')
             print("ERROR: EXPRESIÓN DESBALANCEADA!!!")
             print('---------------------------------------')

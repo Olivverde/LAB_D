@@ -323,41 +323,155 @@ class FDA(object):
 
     def identify_final_states(self, dicc):
         states = []
-
+        recursiveness = []
+        # Para estados recursivos
+        for i in dicc:
+            for k in dicc[i]:
+                if i == str(dicc[i][k]):
+                    if not i in states:
+                        states.append(str(i))
+                    if not i in recursiveness:
+                        recursiveness.append(str(i))
+        
+        # # Para estados pre recursivos
+        for i in dicc:
+            for k in dicc[i]:
+                if str(dicc[i][k]) in recursiveness:
+                    if not i in states:
+                        states.append(str(i))
+        #         if isinstance(dicc[0][i], int): # Recordar poner el cero en string
+        #             states.append(i)
+        # Para estados muertos
         for i in dicc:
             score = 0
             for k in dicc[i]:
-                if dicc[i][k] != []:
+                if isinstance(dicc[i][k], int):
                     score += 1
-                    if i == dicc[i][k]:
-                        if not i in states:
-                            states.append(str(i))
+                # len(dicc[i][k]) != 0:
+                #     score += 1
+                else:
+                    if len(dicc[i][k]) != 0:
+                        score += 1
+                    # if not i in states:
+                    #     states.append(str(i))
             if score == 0:
-                states.append(i)
+                if not i in states:
+                    states.append(str(i))
         
-        for i in dicc:
-            for k in dicc[i]:
-                if dicc[i][k] in states:
-                    if not i in states:
-                            states.append(str(i))
+        # for i in dicc:
+        #     for k in dicc[i]:
+        #         if dicc[i][k] in states:
+        #             if not i in states:
+        #                     states.append(i) # recordar poner str(i)
              
         # print(states)
         return states
 
 
     def afd_simulation(self, w, dicc):
-        initial_state = '0'
+        initial_state = '0' # '0'
         s = initial_state
         final_state = self.identify_final_states(dicc)
-        print(final_state)
-        
+        # print(final_state)
+        # print('final_state:',final_state)
         w = self.w_translation(w)
         for c in w:
             try:
                 s = dicc[s][c]
-                s = str(s)
+                s = str(s) # str(s)
             except:
                 return 'FAIL'
+        
+        # while True:
+        #     try:
+        #         for i in dicc[s]:
+        #             if "ϕ" == i:
+        #                 s = dicc[s]["ϕ"]
+        #         if not isinstance(s, int):
+        #             break
+            # except:
+            #     if str(s) in final_state:
+            #         return 'PASS'
+            #     else:
+            #         return 'FAIL'
+        if s in final_state:
+            return 'PASS'
+        else:
+            return 'FAIL'
+        
+    def identify_final_states_testing(self, dicc):
+        states = []
+        recursiveness = []
+        # Para estados recursivos
+        for i in dicc:
+            for k in dicc[i]:
+                if i == dicc[i][k]:
+                    if not i in states:
+                        states.append(i)
+                    if not i in recursiveness:
+                        recursiveness.append(i)
+        
+        # # Para estados pre recursivos
+        for i in dicc:
+            for k in dicc[i]:
+                if dicc[i][k] in recursiveness:
+                    if not i in states:
+                        states.append(i)
+        #         if isinstance(dicc[0][i], int): # Recordar poner el cero en string
+        #             states.append(i)
+        # Para estados muertos
+        for i in dicc:
+            score = 0
+            for k in dicc[i]:
+                if isinstance(dicc[i][k], int):
+                    score += 1
+                # len(dicc[i][k]) != 0:
+                #     score += 1
+                else:
+                    if len(dicc[i][k]) != 0:
+                        score += 1
+                    # if not i in states:
+                    #     states.append(str(i))
+            if score == 0:
+                if not i in states:
+                    states.append(i)
+        
+        # for i in dicc:
+        #     for k in dicc[i]:
+        #         if dicc[i][k] in states:
+        #             if not i in states:
+        #                     states.append(i) # recordar poner str(i)
+             
+        # print(states)
+        return states
+
+
+    def afd_simulation_testing(self, w, dicc):
+        initial_state = 0 # '0'
+        s = initial_state
+        final_state = self.identify_final_states_testing(dicc)
+        # print(final_state)
+        # print('final_state:',final_state)
+        w = self.w_translation(w)
+        for c in w:
+            try:
+                s = dicc[s][c]
+                s = s # str(s)
+            except:
+                return 'FAIL'
+        
+        # while True:
+        #     try:
+        #         for i in dicc[s]:
+        #             if "ϕ" == i:
+        #                 s = dicc[s]["ϕ"]
+        #         if not isinstance(s, int):
+        #             break
+            # except:
+            #     if str(s) in final_state:
+            #         return 'PASS'
+            #     else:
+            #         return 'FAIL'
         if s in final_state:
             return 'PASS'
         else:
@@ -407,30 +521,25 @@ class FDA(object):
         else:
             return 'FAIL'
 
-# r = [r"( |\t|\n)",
+# r = ["( |\t|\n)",
 #     r'(( |\t|\n))(( |\t|\n)*)',
 #     "(A|B|C|D|E|F|G|H|I|J|K|L|M|N|O|P|Q|R|S|T|U|V|W|X|Y|Z|a|b|c|d|e|f|g|h|i|j|k|l|m|n|o|p|q|r|s|t|u|v|w|x|y|z)",
-#     "(0|1|2|3|4|5|6|7|8|9)",
-#     "(A|B|C|D|E|F|G|H|I|J|K|L|M|N|O|P|Q|R|S|T|U|V|W|X|Y|Z|a|b|c|d|e|f|g|h|i|j|k|l|m|n|o|p|q|r|s|t|u|v|w|x|y|z)((A|B|C|D|E|F|G|H|I|J|K|L|M|N|O|P|Q|R|S|T|U|V|W|X|Y|Z|a|b|c|d|e|f|g|h|i|j|k|l|m|n|o|p|q|r|s|t|u|v|w|x|y|z)|(0|1|2|3|4|5|6|7|8|9))*"
+#     "(A|B|C)(A|D|E)*",
+#     "(A|B|C|D|E|F|G|H|I|J|K|L|M|N|O|P|Q|R|S|T|U|V|W|X|Y|Z|a|b|c|d|e|f|g|h|i|j|k|l|m|n|o|p|q|r|s|t|u|v|w|x|y|z)((A|B|C|D|E|F|G|H|I|J|K|L|M|N|O|P|Q|R|S|T|U|V|W|X|Y|Z|a|b|c|d|e|f|g|h|i|j|k|l|m|n|o|p|q|r|s|t|u|v|w|x|y|z)|(0|1|2|3|4|5|6|7|8|9))*",
+#     "((0|1|2|3|4|5|6|7|8|9))((0|1|2|3|4|5|6|7|8|9)*)((.((0|1|2|3|4|5|6|7|8|9))((0|1|2|3|4|5|6|7|8|9)*))|\u03b5)((E(+|-|\u03b5)((0|1|2|3|4|5|6|7|8|9))((0|1|2|3|4|5|6|7|8|9)*))|\u03b5)"
 #     ]
-# sim = [['1', '2', '22', '4'],
+# sim = [[' ', '\t', '\n', '4'],
 #        [r'\n', r'\s', r'\t', r'\s'],
 #        ['a','b','xx','q'],
-#        ['Mamawebo', 'PussyDestroyer69', 'Olivverdes11', 'a'],
-#        ['Mamawebo', 'PussyDestroyer69', 'Olivverdes11', 'a']]
+#        ['AAA','ADEDEDE','CEE'],
+#        ['A','AV','Q1','EVE','WT4','A22','u3J','var2two'],
+#        ['4.521E+132']]
 
-# q = 4
+# q = 0
 # re_list = {'basic':r[q], 'regular':r[q]+'#'}
 # re = re_list['basic']
-# # re_r = re_list['regular']
 # lib = Libs(re)
-# # lib_r = Libs(re_r)
 # postfix = lib.get_postfix()
-# # postfix_r = lib_r.get_postfix()
-# # print('---------------------------')
-# print('TRADUCCION:',lib.get_printable_trans())
-# print('POSTFIX:',lib.get_printable_postfix())
-# # print('---------------------------')
 
 # nfa = NFA()
 # fda = FDA()
@@ -438,29 +547,15 @@ class FDA(object):
 
 # nfa.thompson(postfix)
 
-# # #states, nodes, transitions, etc. NFA in a nutshell
 # transitions = nfa.get_transitions()
 # acc_st = nfa.get_acceptance_state()+1
 # a,b = fda.subConstruct(transitions, acc_st)
-# # print('NFA')
-# # print('-----------------------------------------------------------')
-# # print('NFA set →',nfa.get_standarized_trans())
-# # print('-----------------------------------------------------------')
-# # print('FDA')
+
 # print('-----------------------------------------------------------')
 # print('Subconstruction DFA Set →',b)
 # print('-----------------------------------------------------------')
 # fda.graph(b)
-# # # print('Subconstruction DFA Set Minimized →',fda.minimize_afd(),'States',fda.initial)
-# # # print('-----------------------------------------------------------')
-# # # fda.graph(fda.minimize_afd())
-# # # print('Regular Postfix:',postfix_r)
-# # # print('Direct FDA Construction →',fda.regular_toAFD(postfix_r))
-# # # print('-----------------------------------------------------------')
-# # # fda.graph(fda.regular_toAFD(postfix_r))
+
 
 # for w in sim[q]:    
-# #     # print('W =',w,' → NFA set Simulation Status:',fda.afn_simulation(w))
-#     print('W =',w,' → Subconstruction DFA Set Simulation Status:',fda.afd_simulation(w,b))
-# #     # print('W =',w,' → Subconstruction DFA Set Minimized Simulation Status:',fda.afd_simulation(w,fda.minimize_afd()))
-# #     # print('W =',w,' → Direct FDA Construction Simulation Status:',fda.afd_simulation(w,fda.regular_toAFD(postfix_r)))
+#     print('W =',w,' → Subconstruction DFA Set Simulation Status:',fda.afd_simulation_testing(w,b))

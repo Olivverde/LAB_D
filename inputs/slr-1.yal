@@ -1,6 +1,6 @@
 (* Lexer para Gramática No. 1 - Expresiones aritméticas simples para variables *)
 
-(* aaaa *)
+(* Introducir cualquier header aqui *)
 
 let delim = [' ''\t''\n']
 let ws = delim+

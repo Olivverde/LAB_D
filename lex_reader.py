@@ -111,6 +111,10 @@ class Lexer(object):
         return section
           
     def pattern_translation(self, raw_pattern, patterns):
+        raw_pattern = raw_pattern.replace('\\s',' ')
+        raw_pattern = raw_pattern.replace('\\t','    ')
+        raw_pattern = raw_pattern.replace('\\n','\n')
+       
         pep = self.pre_exist_patterns
         aux_pattern = []
         section = ''
@@ -125,6 +129,7 @@ class Lexer(object):
                 if '\\' in raw_pattern:
                     ax = ''
                     raw_pattern = [x for x in raw_pattern.split('\\') if x]
+                    
                     for e in range(len(raw_pattern)):
                         ax = ax + '\\' + raw_pattern[e]
                         if e != len(raw_pattern) - 1:   
@@ -178,10 +183,12 @@ class Lexer(object):
         
 
         with open(path) as file:
-            
+            rule_score = 0
+            jump_score = 0
             patterns = {}
+            tokens = {}
             # Inicializar lista vacía
-            let_vars = []
+            
             # Leer archivo línea por línea
             for line in file:
                 # Buscar "let" en la línea
@@ -190,6 +197,7 @@ class Lexer(object):
                     var = line.split("let ")[1].strip()
                     pattern_name = var.split("=")[0].strip()
                     pattern = var.split("=")[1].strip()
+                    
                     
                     pattern = self.pattern_translation(pattern, patterns)
                     
@@ -205,12 +213,46 @@ class Lexer(object):
                     if "'" in pattern:
                         pattern = pattern.replace("'", '')
                     patterns[pattern_name] = pattern
-            return patterns
+                
+                elif 'rule tokens' in line:
+                    rule_score += 1
+                
+                elif rule_score != 0:
+                    partes = []
+                    # Verificar si la línea contiene un token
+
+                    # Separar la línea en el token y su acción de retorno
+                    if '|' in line:
+                        partes = line.split('|')
+                        partes = partes[1].split()
+                        
+                    else:
+                        partes = line.split()
+                    
+                    
+                    if len(line) == 1:
+                        jump_score += 1
+                    
+                    if jump_score == 0:
+                        try:
+                            token = partes[0]
+                            if "'" in token:
+                                token = token.replace("'","")
+                            action = partes[3]
+                            tokens[token] = action
+                        except:
+                            token = partes[0]
+                            action = ''
+                            tokens[token] = action
+                    # Agregar el token y su acción de retorno al diccionario
+                  
+                # Imprimir el diccionario resultante
+            
+            print(patterns)
+            return patterns, tokens
 
     def afn_union(self, patterns):
-        G = nx.DiGraph()
         afds = []
-        afns = []
         for i in patterns:
             score = 0
             N = NFA()
@@ -226,76 +268,114 @@ class Lexer(object):
             
         return afds, patterns
             
-    def int_to_str(self,key):
-        if isinstance(key, int):
-            return str(key)
-        return key
+   
 
-    def file_generator(self, afds, patterns):
-        json_afds = json.dumps(afds, indent=4,ensure_ascii=False,default=self.int_to_str)
+    def file_generator(self, afds, patterns, tokens):
+        
+        json_afds = json.dumps(afds, indent=4,ensure_ascii=False)
         json_patterns = json.dumps(patterns, indent=4)
- 
+        json_tokens = json.dumps(tokens)
+        print(tokens)
+        
         with open("test.py", "w", encoding='utf-8') as archivo:
             archivo.write(f"from labB import *\n")
             archivo.write(f"afds = {json_afds}\n")
             archivo.write(f"patterns = {json_patterns}\n\n")
+            archivo.write(f"tokens ={json_tokens}\n")
             archivo.write('class Test:\n')
-            archivo.write('    def identifyer(self, w, afds, patterns):\n')
-            archivo.write('        a = FDA()\n')
+            archivo.write('    def identifyer2(self, w, afds, patterns):\n')
+            archivo.write('        fda = FDA()\n')
+            archivo.write('        identifyed_patterns = []\n')
+            archivo.write('        pass_counter = 0\n')
+            archivo.write('        stored_pattern = \'\'\n')
+            archivo.write('        result = \'\'\n')
             archivo.write('        flag = 0\n')
             archivo.write('        for i in patterns:\n')
             archivo.write('            patterns[i] = afds[flag]\n')
             archivo.write('            flag += 1\n')
+            archivo.write('        w = list(w)\n')
             archivo.write('        aux_w = \'\'\n')
-            archivo.write('        result = \'\'\n')
-            archivo.write('        for c in range(len(w)):\n')
-            archivo.write('            aux_w += w[c]\n')
-            archivo.write('            for pat in patterns:\n')
-            archivo.write('                b = patterns[pat]\n')
-            archivo.write('                result = a.afd_simulation(aux_w, b)\n')
+            archivo.write('        while w:\n')
+            archivo.write('            pass_counter = 0\n')
+            archivo.write('            aux_w += w.pop(0)\n')
+            archivo.write('            for pattern in patterns:\n')
+            archivo.write('                b = patterns[pattern]\n')
+            archivo.write('                result = fda.afd_simulation(aux_w, b)\n')
             archivo.write('                if result == \'PASS\':\n')
-            archivo.write('                    print(\'<\', aux_w, \' →\', pat, \'>\')\n')
+            archivo.write('                    stored_pattern = pattern\n')
+            archivo.write('                    pass_counter += 1\n')
+            archivo.write('                elif result == \'FAIL\':\n')
+            archivo.write('                    if pattern == stored_pattern:\n')
+            archivo.write('                        identifyed_patterns.append(aux_w[:len(aux_w)-1])\n')
+            archivo.write('                        w.insert(0,aux_w[-1])\n')
+            archivo.write('                        aux_w = \'\'\n')
+            archivo.write('                        stored_pattern = \'\'\n')
+            archivo.write('                        pass_counter += 1\n')
+            archivo.write('                    elif aux_w in tokens and not stored_pattern:\n')
+            archivo.write('                        identifyed_patterns.append(aux_w)\n')
+            archivo.write('                        aux_w = \'\'\n')
+            archivo.write('                        stored_pattern = \'\'\n')
+            archivo.write('                        pass_counter += 1\n')
+            archivo.write('            if pass_counter == 0:\n')
+            archivo.write('                aux_w = \'\'\n')
+            archivo.write('        if aux_w:\n')
+            archivo.write('            identifyed_patterns.append(aux_w)\n')
+            archivo.write('        print(identifyed_patterns)\n')
+        
+            # archivo.write('    def identifyer(self, w, afds, patterns):\n')
+            # archivo.write('        returned = \'\'\n')
+            # archivo.write('        a = FDA()\n')
+            # archivo.write('        flag = 0\n')
+            # archivo.write('        for i in patterns:\n')
+            # archivo.write('            patterns[i] = afds[flag]\n')
+            # archivo.write('            flag += 1\n')
+            # archivo.write('        aux_w = \'\'\n')
+            # archivo.write('        result = \'\'\n')
+            # archivo.write('        counter = 0\n')
+            # archivo.write('        w = list(w)\n')
+            # archivo.write('        while len(w) != 0:\n')
+            # archivo.write('            if counter == 0:\n')
+            # archivo.write('                aux_w += w.pop(0)\n')
+            # archivo.write('            else:\n')
+            # archivo.write('                counter = 0\n')
+            # archivo.write('            for pat in patterns:\n')
+            # archivo.write('                b = patterns[pat]\n')
+            # archivo.write('                result = a.afd_simulation(aux_w, b)\n')
+            # archivo.write('                if result == \'PASS\':\n')
+            # archivo.write('                    try:\n')
+            # archivo.write('                        returned = \' < \' + aux_w + \' → \' + tokens[pat] + \' > \'\n')
+            # archivo.write('                    except:\n')
+            # archivo.write('                        pass\n')
+            # archivo.write('                elif result == \'FAIL\':\n')
+            # archivo.write('                    try:\n')
+            # archivo.write('                        if tokens[pat] in returned and tokens[pat] != aux_w:\n')
+            # archivo.write('                            print(returned)\n')
+            # archivo.write('                            counter += 1\n')
+            # archivo.write('                            aux_w = aux_w[-1]\n')
+            # archivo.write('                    except:\n')
+            # archivo.write('                        if aux_w in tokens and len(aux_w) == 1:\n')
+            # archivo.write('                            returned =\'< \' + aux_w + \' → \' + tokens[aux_w] + \' >\'\n')
+            # archivo.write('                            print(returned)\n')
+            # archivo.write('                            aux_w = \'\'\n')
+            # archivo.write('                        counter = 0\n')
+            # archivo.write('                        result = \'\'\n')
+            # archivo.write('        if result == \'PASS\':\n')
+            # archivo.write('            print(returned)\n')
+            
+            
             archivo.write('t = Test()\n')
-            archivo.write('w = \'abc\'\n')
-            archivo.write('t.identifyer(w, afds, patterns)\n')
+            archivo.write('w = \'id1*(id2+id3)+id4\'\n')
+            archivo.write('t.identifyer2(w, afds, patterns)\n')
 
             
 
-    def identifyer(self,w, afds, patterns):
-        a = FDA()
-        flag = 0
-        for i in patterns:
-            patterns[i] = afds[flag]
-            flag += 1
-        
-        print(patterns)
-        aux_w = ''
-        result = ''
-        for c in range(len(w)):
-            aux_w += w[c]
-            for pat in patterns:
-                b = patterns[pat]
-                b = patterns['digit']
-                print(b)
-                result = a.afd_simulation('1', b)
-                if result == 'PASS':
-                    print('<',aux_w,' →',pat,'>')
-                
+    
             
 
 
 path = 'inputs/slr-1.yal'
 L = Lexer()
-patterns  = L.reader(path)
+patterns, tokens  = L.reader(path)
 L.pre_load(path)
 afds, patterns = L.afn_union(patterns)
-L.file_generator(afds,patterns)
-# L.identifyer('abc',afds, patterns)
-# print(acceptance)
-# a,b = FDA().subConstruct(afn_master, acceptance+1)
-# print('Subconstruction DFA Set →',b)
-# # print('-----------------------------------------------------------')
-# FDA().graph(b)
-
-# w = 'AA2'
-# print('W =',w,' → Subconstruction DFA Set Simulation Status:',FDA().afd_simulation(w,b))
+L.file_generator(afds, patterns, tokens)
