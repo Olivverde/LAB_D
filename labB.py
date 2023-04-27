@@ -77,6 +77,7 @@ class FDA(object):
         # print('pass')
         # Generate AFD states table
         states_list = self.table_template(transitions.sub_transitions, False)
+        print(states_list)
         states_list.pop('ε')
         self.epsilon_initial_table = copy.deepcopy(table)
         initial_list = table[0]['ε']
