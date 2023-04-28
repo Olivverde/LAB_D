@@ -42,8 +42,6 @@ class Lexer(object):
                     if c == "'":
                         balance_score_mark += 1
                 if balance_score_mark%2 != 0 or balance_score_paren%2 != 0:
-                    print(line)
-                    print(balance_score_mark, balance_score_paren)
                     print('---------------------------------------')
                     print("ERROR: EXPRESIÓN DESBALANCEADA!!!")
                     print('---------------------------------------')
@@ -52,7 +50,8 @@ class Lexer(object):
     def pre_fab(self):
         patterns_ax = { "'A'-'Z'": [chr(i) for i in range(ord('A'), ord('Z')+1)],
                               "'a'-'z'": [chr(i) for i in range(ord('a'), ord('z')+1)],
-                              "'0'-'9'": [chr(i) for i in range(ord('0'), ord('9')+1)]}
+                              "'0'-'9'": [chr(i) for i in range(ord('0'), ord('9')+1)],
+                              "(_)*":['_','_']}
         for i in patterns_ax:
             patterns_ax[i] = [letra + "|" for letra in patterns_ax[i]]
             patterns_ax[i][-1] = patterns_ax[i][-1][0]
@@ -112,9 +111,9 @@ class Lexer(object):
           
     def pattern_translation(self, raw_pattern, patterns):
         raw_pattern = raw_pattern.replace('\\s',' ')
-        raw_pattern = raw_pattern.replace('\    ','    ')
+        raw_pattern = raw_pattern.replace('\\t','\t')
         raw_pattern = raw_pattern.replace('\\n','\n')
-       
+        raw_pattern = raw_pattern.replace('(_)*','_|\_')
         pep = self.pre_exist_patterns
         aux_pattern = []
         section = ''
@@ -238,17 +237,17 @@ class Lexer(object):
                             token = partes[0]
                             if "'" in token:
                                 token = token.replace("'","")
+                            elif '"' in pattern:
+                                token = token.replace('"', '')
                             action = partes[3]
                             tokens[token] = action
-                        except:
+                        except Exception:
                             token = partes[0]
                             action = ''
                             tokens[token] = action
                     # Agregar el token y su acción de retorno al diccionario
-                  
                 # Imprimir el diccionario resultante
             
-            # print(patterns)
             return patterns, tokens
 
     def afn_union(self, patterns):
@@ -261,14 +260,11 @@ class Lexer(object):
             postfix = lib.get_postfix()
             # print(postfix)
             N.thompson(postfix)
-           
             a,b = F.subConstruct(N.AFN_transitions, N.get_acceptance_state()+1)
             
             afds.append(b)
             
         return afds, patterns
-            
-   
 
     def file_generator(self, afds, patterns, tokens):
         
@@ -282,65 +278,132 @@ class Lexer(object):
             archivo.write(f"afds = {json_afds}\n")
             archivo.write(f"patterns = {json_patterns}\n\n")
             archivo.write(f"tokens ={json_tokens}\n")
-            archivo.write('class Test:\n')
-            archivo.write('    def identifyer2(self, w, afds, patterns):\n')
-            archivo.write('        fda = FDA()\n')
-            archivo.write('        identified_patterns = []\n')
-            archivo.write('        pass_counter = 0\n')
-            archivo.write('        stored_pattern = ""\n')
-            archivo.write('        result = ""\n')
-            archivo.write('        flag = 0\n')
-            archivo.write('        for i in patterns:\n')
-            archivo.write('            patterns[i] = afds[flag]\n')
-            archivo.write('            flag += 1\n')
-            archivo.write('        w = list(w)\n')
-            archivo.write('        aux_w = ""\n')
-            archivo.write('        while w:\n')
-            archivo.write('            pass_counter = 0\n')
-            archivo.write('            aux_w += w.pop(0)\n')
-            archivo.write('            for pattern in patterns:\n')
-            archivo.write('                b = patterns[pattern]\n')
-            archivo.write('                result = fda.afd_simulation(aux_w, b)\n')
-            archivo.write('                if result == "PASS":\n')
-            archivo.write('                    stored_pattern = pattern\n')
-            archivo.write('                    pass_counter += 1\n')
-            archivo.write('                elif result == "FAIL":\n')
-            archivo.write('                    if "." in aux_w and pattern == stored_pattern:\n')
-            archivo.write('                        aux_future_w = aux_w + w[0]\n')
-            archivo.write('                        for pattern in patterns:\n')
-            archivo.write('                            b = patterns[pattern]\n')
-            archivo.write('                            result = fda.afd_simulation(aux_future_w, b)\n')
-            archivo.write('                            if result == "PASS":\n')
-            archivo.write('                                w.pop(0)\n')
-            archivo.write('                                aux_w = aux_future_w\n')
-            archivo.write('                                stored_pattern = pattern\n')
+            archivo.write("class Test:\n")
+            archivo.write("    def identifyer2(self, w):\n")
+            # archivo.write("        print(w)\n")
+            # archivo.write("        input('WAITING FOR APPROVAL')\n")
+            archivo.write("        fda = FDA()\n")
+            archivo.write("        identified_patterns = []\n")
+            archivo.write("        printable = []\n")
+            archivo.write("        pass_counter = 0\n")
+            archivo.write("        stored_pattern = \"\"\n")
+            archivo.write("        result = \"\"\n")
+            archivo.write("        aux_flag = False\n")
+            archivo.write("        aux_flag_dot = False\n")
+            archivo.write('        aux_flag_d_dot = False\n')
+            archivo.write("        for flag, i in enumerate(patterns):\n")
+            archivo.write("            patterns[i] = afds[flag]\n")
+            archivo.write("        w = list(w)\n")
+            archivo.write("        aux_w = \"\"\n")
+            archivo.write("        while w:\n")
+            archivo.write("            pass_counter = 0\n")
+            archivo.write("            aux_w += w.pop(0)\n")
+            archivo.write("            for pattern in patterns:\n")
+            archivo.write("                b = patterns[pattern]\n")
+            archivo.write("                result = fda.afd_simulation(aux_w, b)\n")
+            archivo.write("                if result == \"PASS\":\n")
+            archivo.write("                    stored_pattern = pattern\n")
+            archivo.write("                    pass_counter += 1\n")
+            archivo.write("                elif result == \"FAIL\":\n")
+            archivo.write("                    if (\n")
+            archivo.write("                        \".\" in aux_w\n")
+            archivo.write("                        and pattern == stored_pattern\n")
+            archivo.write("                        and \"E\" not in aux_w\n")
+            archivo.write("                        and aux_flag_dot == False\n")
+            archivo.write("                    ):\n")
+            archivo.write("                        try:\n")
+            archivo.write("                            aux_future_w = aux_w + w[0]\n")
+            archivo.write("                            for pattern in patterns:\n")
+            archivo.write("                                b = patterns[pattern]\n")
+            archivo.write("                                result = fda.afd_simulation(aux_future_w, b)\n")
+            archivo.write("                                if result == \"PASS\":\n")
+            archivo.write("                                    w.pop(0)\n")
+            archivo.write("                                    aux_w = aux_future_w\n")
+            archivo.write("                                    stored_pattern = pattern\n")
+            archivo.write("                                    pass_counter += 1\n")
+            archivo.write("                                    aux_flag_dot = True\n")
+            archivo.write("                        except Exception:\n")
+            archivo.write("                            pass\n")
+            archivo.write("                    elif 'E' in aux_w and pattern == stored_pattern and aux_flag == False:\n")
+            archivo.write("                        try:\n")
+            archivo.write("                            aux_future_w = aux_w + w[0]\n")
+            archivo.write("                            for pattern in patterns:\n")
+            archivo.write("                                b = patterns[pattern]\n")
+            archivo.write("                                result = fda.afd_simulation(aux_future_w, b)\n")
+            archivo.write("                                if result == \"PASS\":\n")
+            archivo.write("                                    w.pop(0)\n")
+            archivo.write("                                    aux_w = aux_future_w\n")
+            archivo.write("                                    stored_pattern = pattern\n")
+            archivo.write("                                    pass_counter += 1\n")
+            archivo.write("                                elif result == 'FAIL':\n")
+            archivo.write("                                    aux_future_w = aux_w + w[0] + w[1]\n")
+            archivo.write("                                    for pattern in patterns:\n")
+            archivo.write("                                        b = patterns[pattern]\n")
+            archivo.write("                                        result = fda.afd_simulation(aux_future_w, b)\n")
+            archivo.write("                                        if result == \"PASS\":\n")
+            archivo.write("                                            w.pop(0)\n")
+            archivo.write("                                            w.pop(0)\n")
+            archivo.write("                                            aux_w = aux_future_w\n")
+            archivo.write("                                            stored_pattern = pattern\n")
+            archivo.write("                                            pass_counter += 1\n")
+            archivo.write("                                            aux_flag = True\n")
+            archivo.write("                        except Exception:\n")
+            archivo.write("                            pass\n")
+            archivo.write("                    elif (\n")
+            archivo.write("                        \":\" in aux_w\n")
+            archivo.write("                        and aux_flag_d_dot == False\n")
+            archivo.write("                        and len(aux_w) == 1\n")
+            archivo.write("                    ):\n")
+            archivo.write("                        try:\n")
+            archivo.write("                            aux_future_w = aux_w + w[0]\n")
+            archivo.write("                            if aux_future_w in tokens:\n")
+            archivo.write("                                identified_patterns.append(aux_future_w)\n")
+            archivo.write("                                printable.append(\'< \' + str(aux_future_w) + \'->\' + str(tokens[aux_future_w]) + \' >\')\n")
+            archivo.write("                                w.pop(0)\n")
+            archivo.write('                                aux_w = ""\n')
+            archivo.write('                                stored_pattern = ""\n')
             archivo.write('                                pass_counter += 1\n')
+            archivo.write('                                aux_flag = False\n')
+            archivo.write('                                aux_flag_dot = False\n')
+            archivo.write('                                aux_flag_d_dot = False\n')
+            archivo.write("                        except Exception:\n")
+            archivo.write("                            pass\n")
+            
+            #  elif aux_w in tokens and not stored_pattern:\n')
+            # archivo.write('                        identified_patterns.append(aux_w)\n')
+            # archivo.write('                        if aux_w in tokens:\n')
+            # archivo.write('                            printable.append(\'< \' + str(aux_w) + \'->\' + str(tokens[aux_w]) + \' >\')\n')
+            
+            
+            
             archivo.write('                    elif pattern == stored_pattern:\n')
             archivo.write('                        identified_patterns.append(aux_w[:-1])\n')
+            archivo.write('                        if pattern in tokens:\n')
+            archivo.write('                            printable.append(\'< \' + str(aux_w[:-1]) + \'->\' + str(tokens[pattern]) + \' >\')\n')
             archivo.write('                        w.insert(0, aux_w[-1])\n')
             archivo.write('                        aux_w = ""\n')
             archivo.write('                        stored_pattern = ""\n')
             archivo.write('                        pass_counter += 1\n')
+            archivo.write('                        aux_flag = False\n')
+            archivo.write('                        aux_flag_dot = False\n')
+            archivo.write('                        aux_flag_d_dot = False\n')
             archivo.write('                    elif aux_w in tokens and not stored_pattern:\n')
             archivo.write('                        identified_patterns.append(aux_w)\n')
+            archivo.write('                        if aux_w in tokens:\n')
+            archivo.write('                            printable.append(\'< \' + str(aux_w) + \'->\' + str(tokens[aux_w]) + \' >\')\n')
             archivo.write('                        aux_w = ""\n')
             archivo.write('                        stored_pattern = ""\n')
             archivo.write('                        pass_counter += 1\n')
-            archivo.write('                    try:\n')
-            archivo.write('                        for i in tokens:\n')
-            archivo.write('                            if aux_future_w in tokens[i] and not stored_pattern:\n')
-            archivo.write('                                identified_patterns.append(aux_future_w)\n')
-            archivo.write('                                w.pop(0)\n')
-            archivo.write('                                aux_w = ""\n')
-            archivo.write('                                stored_pattern = ""\n')
-            archivo.write('                                pass_counter += 1\n')
-            archivo.write('                    except:\n')
-            archivo.write('                        pass\n')
+            archivo.write('                        aux_flag = False\n')
+            archivo.write('                        aux_flag_dot = False\n')
+            archivo.write('                        aux_flag_d_dot = False\n')
             archivo.write('            if pass_counter == 0:\n')
             archivo.write('                aux_w = ""\n')
             archivo.write('        if aux_w:\n')
             archivo.write('            identified_patterns.append(aux_w)\n')
-            archivo.write('        print(identified_patterns)\n')
+            archivo.write('            if stored_pattern in tokens:\n')
+            archivo.write('                printable.append(\'< \' + str(aux_w) + \'->\' + str(tokens[stored_pattern]) + \' >\')\n')
+            archivo.write('        return [identified_patterns,printable]\n')
 
         
             # archivo.write('    def identifyer(self, w, afds, patterns):\n')
@@ -365,7 +428,7 @@ class Lexer(object):
             # archivo.write('                if result == \'PASS\':\n')
             # archivo.write('                    try:\n')
             # archivo.write('                        returned = \' < \' + aux_w + \' → \' + tokens[pat] + \' > \'\n')
-            # archivo.write('                    except:\n')
+            # archivo.write('                    except Exception:\n')
             # archivo.write('                        pass\n')
             # archivo.write('                elif result == \'FAIL\':\n')
             # archivo.write('                    try:\n')
@@ -373,7 +436,7 @@ class Lexer(object):
             # archivo.write('                            print(returned)\n')
             # archivo.write('                            counter += 1\n')
             # archivo.write('                            aux_w = aux_w[-1]\n')
-            # archivo.write('                    except:\n')
+            # archivo.write('                    except Exception:\n')
             # archivo.write('                        if aux_w in tokens and len(aux_w) == 1:\n')
             # archivo.write('                            returned =\'< \' + aux_w + \' → \' + tokens[aux_w] + \' >\'\n')
             # archivo.write('                            print(returned)\n')
@@ -384,9 +447,9 @@ class Lexer(object):
             # archivo.write('            print(returned)\n')
             
             
-            archivo.write('t = Test()\n')
-            archivo.write('w = \'id1*(id2+id3)+id4\'\n')
-            archivo.write('t.identifyer2(w, afds, patterns)\n')
+            # archivo.write('t = Test()\n')
+            # archivo.write('w = \'id1*(id2+id3)+id4\'\n')
+            # archivo.write('t.identifyer2(w, afds, patterns)\n')
 
             
 
@@ -394,9 +457,9 @@ class Lexer(object):
             
 
 
-path = 'inputs/slr-1.yal'
-L = Lexer()
-patterns, tokens  = L.reader(path)
-L.pre_load(path)
-afds, patterns = L.afn_union(patterns)
-L.file_generator(afds, patterns, tokens)
+# path = 'inputs/slr-4.yal'
+# L = Lexer()
+# patterns, tokens  = L.reader(path)
+# L.pre_load(path)
+# afds, patterns = L.afn_union(patterns)
+# L.file_generator(afds, patterns, tokens)

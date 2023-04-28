@@ -364,7 +364,6 @@ class FDA(object):
         #         if dicc[i][k] in states:
         #             if not i in states:
         #                     states.append(i) # recordar poner str(i)
-             
         # print(states)
         return states
 
@@ -442,7 +441,6 @@ class FDA(object):
         #         if dicc[i][k] in states:
         #             if not i in states:
         #                     states.append(i) # recordar poner str(i)
-             
         # print(states)
         return states
 
@@ -522,19 +520,19 @@ class FDA(object):
         else:
             return 'FAIL'
 
-# r = ["( |\t|\n)",
+# r = ["(_)",
 #     r'(( |\t|\n))(( |\t|\n)*)',
 #     "(A|B|C|D|E|F|G|H|I|J|K|L|M|N|O|P|Q|R|S|T|U|V|W|X|Y|Z|a|b|c|d|e|f|g|h|i|j|k|l|m|n|o|p|q|r|s|t|u|v|w|x|y|z)",
 #     "(A|B|C)(A|D|E)*",
 #     "(A|B|C|D|E|F|G|H|I|J|K|L|M|N|O|P|Q|R|S|T|U|V|W|X|Y|Z|a|b|c|d|e|f|g|h|i|j|k|l|m|n|o|p|q|r|s|t|u|v|w|x|y|z)((A|B|C|D|E|F|G|H|I|J|K|L|M|N|O|P|Q|R|S|T|U|V|W|X|Y|Z|a|b|c|d|e|f|g|h|i|j|k|l|m|n|o|p|q|r|s|t|u|v|w|x|y|z)|(0|1|2|3|4|5|6|7|8|9))*",
 #     "((0|1|2|3|4|5|6|7|8|9))((0|1|2|3|4|5|6|7|8|9)*)((.((0|1|2|3|4|5|6|7|8|9))((0|1|2|3|4|5|6|7|8|9)*))|\u03b5)((E(+|-|\u03b5)((0|1|2|3|4|5|6|7|8|9))((0|1|2|3|4|5|6|7|8|9)*))|\u03b5)"
 #     ]
-# sim = [[' ', '\t', '\n', '4'],
-#        [r'\n', r'\s', r'\t', r'\s'],
-#        ['a','b','xx','q'],
-#        ['AAA','ADEDEDE','CEE'],
-#        ['A','AV','Q1','EVE','WT4','A22','u3J','var2two'],
-#        ['4.521E+132']]
+# # sim = [[' ', '\t', '\n', '4'],
+# #        [r'\n', r'\s', r'\t', r'\s'],
+# #        ['a','b','xx','q'],
+# #        ['AAA','ADEDEDE','CEE'],
+# #        ['A','AV','Q1','EVE','WT4','A22','u3J','var2two'],
+# #        ['4.521E+132']]
 
 # q = 0
 # re_list = {'basic':r[q], 'regular':r[q]+'#'}

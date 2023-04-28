@@ -76,7 +76,6 @@ class Libs(object):
         string = ''.join(translation)
         
         # Balance verification
-        print(string)
         for c in [char for char in string]:
             
             if c == '(':

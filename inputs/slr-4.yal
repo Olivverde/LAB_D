@@ -16,7 +16,7 @@ rule tokens =
   | id        { return ID }               (* Cambie por una acción válida, que devuelva el token *)
   | number    { return NUMBER }
   | ';'       { return SEMICOLON }
-  | ":="      { return ASSIGNOP }
+  | ':='      { return ASSIGNOP }
   | '<'       { return LT }
   | '='       { return EQ }
   | '+'       { return PLUS }
